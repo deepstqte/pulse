@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  api:
+    build:
+      context: .
+    volumes:
+      - ./:/app
+    ports:
+      - 80:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata6:/data/db
+    restart: always
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: pulseUser
+      POSTGRES_PASSWORD: pulsePassword
+      POSTGRES_DB: pulse
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulseUser -d pulse"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dbdata6:
+  db_data:
